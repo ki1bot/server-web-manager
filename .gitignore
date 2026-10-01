@@ -1,2 +1,6 @@
-/data
-/out
+/data/
+/out/
+/target/
+*.class
+.idea/
+.vscode/

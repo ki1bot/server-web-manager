@@ -235,9 +235,15 @@ public class ConfigurationsPanel extends JPanel {
             return;
         }
 
-        service.saveConfiguration(
-                result
-        );
+        boolean saved =
+                service.saveConfiguration(
+                        result
+                );
+
+        if (!saved) {
+            showDuplicateNameMessage();
+            return;
+        }
 
         onChanged.run();
     }
@@ -267,9 +273,15 @@ public class ConfigurationsPanel extends JPanel {
             return;
         }
 
-        service.saveConfiguration(
-                result
-        );
+        boolean saved =
+                service.saveConfiguration(
+                        result
+                );
+
+        if (!saved) {
+            showDuplicateNameMessage();
+            return;
+        }
 
         onChanged.run();
     }
@@ -329,6 +341,15 @@ public class ConfigurationsPanel extends JPanel {
 
         return rows.get(
                 modelRow
+        );
+    }
+
+    private void showDuplicateNameMessage() {
+        JOptionPane.showMessageDialog(
+                this,
+                "Nama konfigurasi sudah digunakan. Gunakan nama yang berbeda.",
+                "Validasi",
+                JOptionPane.WARNING_MESSAGE
         );
     }
 }

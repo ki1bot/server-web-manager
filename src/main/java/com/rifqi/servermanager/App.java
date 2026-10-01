@@ -20,7 +20,9 @@ public class App {
             ServerManagementService service =
                     new ServerManagementService(repository);
 
-            service.seedIfEmpty();
+            if (repository.isFirstRun()) {
+                service.seedIfEmpty();
+            }
 
             new MainFrame(service).setVisible(true);
         });
@@ -32,7 +34,10 @@ public class App {
                     UIManager.getInstalledLookAndFeels()) {
 
                 if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
+                    UIManager.setLookAndFeel(
+                            info.getClassName()
+                    );
+
                     return;
                 }
             }

@@ -10,15 +10,22 @@ import java.nio.file.Path;
 
 public class AppRepository {
     private final Path filePath;
+    private final boolean firstRun;
+
     private AppState state;
 
     public AppRepository(Path filePath) {
         this.filePath = filePath;
+        this.firstRun = Files.notExists(filePath);
         this.state = load();
     }
 
     public synchronized AppState state() {
         return state;
+    }
+
+    public boolean isFirstRun() {
+        return firstRun;
     }
 
     public synchronized void save() {
@@ -66,7 +73,10 @@ public class AppRepository {
 
             return new AppState();
 
-        } catch (IOException | ClassNotFoundException exception) {
+        } catch (
+                IOException
+                | ClassNotFoundException exception
+        ) {
             return new AppState();
         }
     }

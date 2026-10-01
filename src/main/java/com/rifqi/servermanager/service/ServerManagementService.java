@@ -27,15 +27,20 @@ public class ServerManagementService {
         this.repository = repository;
 
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
-                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(
+                        Duration.ofSeconds(5)
+                )
+                .followRedirects(
+                        HttpClient.Redirect.NORMAL
+                )
                 .build();
     }
 
     public synchronized List<WebConfiguration> getConfigurations() {
         List<WebConfiguration> result =
                 new ArrayList<>(
-                        repository.state().getConfigurations()
+                        repository.state()
+                                .getConfigurations()
                 );
 
         result.sort(
@@ -51,7 +56,8 @@ public class ServerManagementService {
     public synchronized List<ServerNode> getNodes() {
         List<ServerNode> result =
                 new ArrayList<>(
-                        repository.state().getNodes()
+                        repository.state()
+                                .getNodes()
                 );
 
         result.sort(
@@ -67,7 +73,8 @@ public class ServerManagementService {
     public synchronized List<ServerCertificate> getCertificates() {
         List<ServerCertificate> result =
                 new ArrayList<>(
-                        repository.state().getCertificates()
+                        repository.state()
+                                .getCertificates()
                 );
 
         result.sort(
@@ -80,30 +87,65 @@ public class ServerManagementService {
         return result;
     }
 
-    public synchronized void saveConfiguration(
+    public synchronized boolean saveConfiguration(
             WebConfiguration configuration
     ) {
+        boolean duplicateName =
+                repository.state()
+                        .getConfigurations()
+                        .stream()
+                        .anyMatch(
+                                item ->
+                                        !item.getId().equals(
+                                                configuration.getId()
+                                        )
+                                                && item.getName()
+                                                .equalsIgnoreCase(
+                                                        configuration.getName()
+                                                )
+                        );
+
+        if (duplicateName) {
+            return false;
+        }
+
         Optional<WebConfiguration> existing =
-                findConfiguration(configuration.getId());
+                findConfiguration(
+                        configuration.getId()
+                );
 
         if (existing.isPresent()) {
-            WebConfiguration current = existing.get();
+            WebConfiguration current =
+                    existing.get();
 
-            String oldName = current.getName();
+            String oldName =
+                    current.getName();
 
-            current.setName(configuration.getName());
-            current.setUrl(configuration.getUrl());
+            current.setName(
+                    configuration.getName()
+            );
+
+            current.setUrl(
+                    configuration.getUrl()
+            );
+
             current.setPhysicalLocation(
                     configuration.getPhysicalLocation()
             );
+
             current.setAuthority(
                     configuration.getAuthority()
             );
+
             current.setStatus(
                     configuration.getStatus()
             );
 
-            if (!oldName.equals(configuration.getName())) {
+            if (
+                    !oldName.equals(
+                            configuration.getName()
+                    )
+            ) {
                 for (
                         ServerNode node :
                         repository.state().getNodes()
@@ -126,6 +168,8 @@ public class ServerManagementService {
         }
 
         repository.save();
+
+        return true;
     }
 
     public synchronized void deleteConfiguration(
@@ -138,12 +182,15 @@ public class ServerManagementService {
             return;
         }
 
-        String name = existing.get().getName();
+        String name =
+                existing.get().getName();
 
         repository.state()
                 .getConfigurations()
                 .removeIf(
-                        item -> item.getId().equals(id)
+                        item ->
+                                item.getId()
+                                        .equals(id)
                 );
 
         repository.state()
@@ -161,10 +208,13 @@ public class ServerManagementService {
             ServerNode node
     ) {
         Optional<ServerNode> existing =
-                findNode(node.getId());
+                findNode(
+                        node.getId()
+                );
 
         if (existing.isPresent()) {
-            ServerNode current = existing.get();
+            ServerNode current =
+                    existing.get();
 
             current.setName(
                     node.getName()
@@ -205,7 +255,9 @@ public class ServerManagementService {
         repository.state()
                 .getNodes()
                 .removeIf(
-                        item -> item.getId().equals(id)
+                        item ->
+                                item.getId()
+                                        .equals(id)
                 );
 
         repository.save();
@@ -254,7 +306,9 @@ public class ServerManagementService {
         repository.state()
                 .getCertificates()
                 .removeIf(
-                        item -> item.getId().equals(id)
+                        item ->
+                                item.getId()
+                                        .equals(id)
                 );
 
         repository.save();
@@ -269,7 +323,9 @@ public class ServerManagementService {
                 .filter(
                         node ->
                                 node.getConfigurationName()
-                                        .equals(configurationName)
+                                        .equals(
+                                                configurationName
+                                        )
                 )
                 .count();
     }
@@ -289,7 +345,9 @@ public class ServerManagementService {
                 return;
             }
 
-            url = configuration.get().getUrl();
+            url =
+                    configuration.get()
+                            .getUrl();
         }
 
         long startedAt =
@@ -313,10 +371,15 @@ public class ServerManagementService {
             HttpResponse<Void> response =
                     httpClient.send(
                             request,
-                            HttpResponse.BodyHandlers.discarding()
+                            HttpResponse
+                                    .BodyHandlers
+                                    .discarding()
                     );
 
-            if (response.statusCode() >= 400) {
+            if (
+                    response.statusCode()
+                            >= 400
+            ) {
                 error = true;
                 status = "Error";
             }
@@ -354,20 +417,6 @@ public class ServerManagementService {
             current.setStatus(
                     status
             );
-
-            for (
-                    ServerNode node :
-                    repository.state().getNodes()
-            ) {
-                if (
-                        node.getConfigurationName()
-                                .equals(current.getName())
-                ) {
-                    node.setStatus(
-                            status
-                    );
-                }
-            }
 
             repository.save();
         }
